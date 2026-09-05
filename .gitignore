@@ -13,3 +13,4 @@ oauth.json*
 browser.json*
 headers_auth.json*
 *.bak
+client_secret_*.json
