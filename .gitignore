@@ -1,0 +1,15 @@
+.env
+data/
+oauth.json
+browser.json
+headers_auth.json
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# credential backups
+oauth.json*
+browser.json*
+headers_auth.json*
+*.bak

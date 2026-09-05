@@ -1,0 +1,140 @@
+# ── Daily Fresh Music — configuration ─────────────────────────────────────────
+
+# ── daily scout (YouTube radio) ───────────────────────────────────────────────
+# The daily run seeds YouTube's radio with tracks you chose yourself and keeps
+# what comes back fresh. It does not walk a catalogue artist by artist any more:
+# Apple now 403s the keyless iTunes API from roughly the 68th call in a run, and
+# that design needed ~1,300.
+
+# How many of your own tracks to seed radio with.
+seed_count: 40
+
+# Radio surfaces to expand each seed through. Each prefix returns a different mix
+# from the same seed, so this is the diversity dial.
+#   RD — track radio   RDAMVM — YT Music video radio   RDMM — personalised mix
+radio_prefixes: [RD, RDAMVM, RDMM]
+
+# Playlists whose tracks count as seeds, matched on title prefix. These are the
+# lists you build by hand, so they are the truest signal of what you'd pick.
+# This project's own output is deliberately excluded — seeding a recommender with
+# its own picks is how a feed stops sounding like you.
+seed_playlist_prefixes: [BathX]
+
+# Also seed from your Liked songs.
+seed_from_liked: true
+
+# How good a new-to-you artist must be, as a share of the best score any unknown
+# artist can reach *in its own language* (0-1). This is a share, not an absolute
+# number, because with no artist-level signal an unknown tops out around 0.36 —
+# below `min_score`. Judging them by that gate meant no new artist could ever be
+# picked and `discovery_ratio` below was unreachable dead config.
+discovery_quality: 0.80
+
+# ── languages ─────────────────────────────────────────────────────────────────
+# The daily scout no longer uses this list — radio returns Spanish, Arabic and
+# German off an English seed on its own. It is still read by XP+, Timeline and
+# Irish, and by the dashboard.
+
+languages:
+  # Fully supported: each has a dedicated Apple/iTunes storefront + Last.fm tags.
+  - name: english
+    markets: [US, GB]
+  - name: spanish
+    markets: [ES, MX, AR]
+  - name: french
+    markets: [FR, CA]
+  - name: portuguese
+    markets: [BR, PT]
+  - name: german
+    markets: [DE, AT, CH]
+  - name: dutch
+    markets: [NL, BE]
+  - name: greek
+    markets: [GR]
+  - name: romanian
+    markets: [RO]
+  - name: serbian
+    markets: [RS]
+  - name: albanian
+    markets: [AL]
+  - name: armenian
+    markets: [AM]
+  - name: arabic
+    markets: [SA, AE, EG]
+  - name: thai
+    markets: [TH]
+  - name: vietnamese
+    markets: [VN]
+  - name: korean
+    markets: [KR]
+  - name: japanese
+    markets: [JP]
+  - name: mandarin
+    markets: [TW, HK]
+  # Best-effort: storefront exists but doesn't isolate the language (shared
+  # regional charts). Picks will lean broadly regional; the feedback loop refines.
+  - name: yoruba
+    markets: [NG]
+  - name: hausa
+    markets: [NG]
+  - name: mandinka
+    markets: [SN]
+  - name: fulani
+    markets: [SN]
+  # No native Apple storefront — seed + feedback driven only, likely thin.
+  - name: persian
+    markets: [US, SE]
+  - name: afar
+    markets: [US]
+
+# How many days back counts as "fresh". 1 = strictly released today.
+# 3-5 is recommended so weak days still produce a good playlist.
+release_window_days: 5
+
+# Target size of each day's playlist (across all languages combined). A ceiling,
+# not a quota — thin days ship short rather than padding with filler.
+picks_per_day: 30
+
+# Max tracks from any single artist per day, so one new album can't flood the
+# whole playlist. Keeps each day varied across many artists.
+max_per_artist: 2
+
+# Minimum score (0-1) a track must reach to be included. Raise to be pickier.
+# Keep this above 0.363: an artist you've never heard of, tagged with your single
+# most-loved genre, scores exactly that, and it's the ceiling for a track the
+# model has no artist-level signal on (genre overlap takes the best match, not
+# the sum). A gate below it cannot tell "promising" from "nothing is known here".
+min_score: 0.40
+
+# 0.0 = play it safe (sounds like what you already love)
+# 1.0 = adventurous (more new artists, more misses, more gems)
+adventurousness: 0.35
+
+# Offline music folders to fold into your taste profile when seeding.
+# Reads artist from tags, falling back to 'Artist - Title' filenames.
+local_music_dirs:
+  - /Users/zei/Downloads/zEiXMusic/Music
+
+# Playlist naming. Final name looks like: "Fresh — 2026-07-18"
+playlist_name_prefix: "Fresh"
+playlist_privacy: PRIVATE   # PRIVATE | UNLISTED | PUBLIC
+
+# Feedback loop: a pick that lands in your Liked Music within this many days is
+# treated as a positive signal; picks older than this that were never liked are
+# treated as a mild negative signal. Fully automatic — just like songs you enjoy.
+feedback_window_days: 4
+
+# Scoring weights (relative; they get normalized internally).
+weights:
+  artist_affinity: 1.0   # you've played this artist / very similar artists
+  genre_overlap: 0.8     # genres match your taste, weighted toward this language
+  novelty: 0.4           # bonus for brand-new-to-you artists (scaled by adventurousness)
+  dislike_penalty: 0.5   # subtracted for thumbed-down / repeatedly-skipped artists+genres
+
+# Fraction of each day's playlist reserved for new-to-you artists (0-1). Ensures
+# the list doesn't collapse into only familiar names. 0 disables the floor.
+discovery_ratio: 0.30
+
+# Daily taste decay (0-0.1). Every run, like/avoid weights shrink by this factor
+# so stale taste fades unless you keep engaging. 0 disables decay.
+taste_decay: 0.01
